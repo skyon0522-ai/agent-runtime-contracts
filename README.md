@@ -63,8 +63,6 @@ The library is pinned to commit `96f33faaf028479119ec8d34507b47694cf14e34`. Chan
 
 The patterns adopted are small input programs, independent expectations, observable traces and reproducible environment records. This is an original diagnostic harness, not a new Python interpreter or a model benchmark. See [references.bib](references.bib).
 
-## Discuss an implementation
-
-[Livoleta](https://livoleta.com/) works on AI adoption, business systems, cloud foundations and security. For a runtime evaluation or a system integration with concrete acceptance criteria, [discuss a project](https://livoleta.com/contact/) or connect on [LinkedIn](https://www.linkedin.com/in/%E4%BA%AC%E4%BB%8B-%E9%BD%8B%E8%97%A4-5a84843a3/).
+## Provenance and license
 
 This is public engineering work, not a client delivery or an upstream endorsement. AI assistance was used for implementation and review; recorded executions, scope and limitations are the evidence. Original code is MIT-licensed. The installed smolagents dependency retains its own Apache-2.0 license.
