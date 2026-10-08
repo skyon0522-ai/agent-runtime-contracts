@@ -6,14 +6,34 @@ A code agent can return the expected value while evaluating an operand that Pyth
 
 Use it when assessing a code-agent runtime, reproducing a language-semantics regression, or designing acceptance tests before connecting business tools. There are no model calls, API keys, customer records or network requests in the checks.
 
+## What the report reveals
+
+| Contract | CPython | Inspected smolagents commit |
+| --- | --- | --- |
+| Final operand of `and` / `or` | Returns the operand without testing its truth value | Returns the same label but calls `__bool__` |
+| False-like result in a chained comparison | Skips the later operand | Calls `later()` even though the returned label is the same |
+| Catch a built-in `KeyError` | Runs the matching handler | Raises `InterpreterError` |
+| Fourteen control cases | Expected result and callback order | Match |
+
+For the chained comparison, the program is `result = (left < 1 < later()).label`. The host fixture's comparison returns a false-like object. CPython records `compare, bool:false`; the inspected interpreter records `compare, later, bool:false`. Both return `false`. The additional call is the finding.
+
+These are version-specific observations, not claims about all releases. The boolean and exception cases overlap existing upstream reports [#2894](https://github.com/huggingface/smolagents/issues/2894) and [#2904](https://github.com/huggingface/smolagents/issues/2904). This project does not claim those discoveries or submit duplicate fixes. No smolagents source is patched or vendored.
+
 ## Run the experiment
+
+[Recorded validation](VALIDATION.md) · [CI and downloadable reports](https://github.com/skyon0522-ai/agent-runtime-contracts/actions/workflows/checks.yml)
 
 Python 3.12 and Git are required for the recorded environment. Other versions have not been locally validated. Installation downloads dependencies; execution is local.
 
-```bash
+```sh
+git clone https://github.com/skyon0522-ai/agent-runtime-contracts.git
+cd agent-runtime-contracts
 python -m venv .venv
-# Linux/macOS; on Windows use .venv\Scripts\activate
-source .venv/bin/activate
+```
+
+Activate the environment with `source .venv/bin/activate` on Linux/macOS, or `.venv\Scripts\Activate.ps1` in PowerShell. Then run:
+
+```sh
 python -m pip install -r requirements-lock.txt
 python runtime_contracts.py run --output report.json
 ```
@@ -33,18 +53,11 @@ ruff format --check .
 
 The checked-in [observation report](examples/observed.json) records interpreter versions, exact upstream commit, source hashes, input programs, return values and callback traces. The [validation record](VALIDATION.md) explains what was actually run.
 
-## What the report reveals
+## Repeat or update an experiment
 
-| Contract | CPython | Inspected smolagents commit |
-| --- | --- | --- |
-| Final operand of `and` / `or` | Returns the operand without testing its truth value | Returns the same label but calls `__bool__` |
-| False-like result in a chained comparison | Skips the later operand | Calls `later()` even though the returned label is the same |
-| Catch a built-in `KeyError` | Runs the matching handler | Raises `InterpreterError` |
-| Fourteen control cases | Expected result and callback order | Match |
+The output path is created if needed; running again with the same path replaces that report. Use distinct names, such as `reports/before.json` and `reports/after.json`, when comparing a dependency update. Keep the checked-in observation report as the published baseline.
 
-For the chained comparison, the program is `result = (left < 1 < later()).label`. The host fixture's comparison returns a false-like object. CPython records `compare, bool:false`; the inspected interpreter records `compare, later, bool:false`. Both return `false`. The additional call is the finding.
-
-These are version-specific observations, not claims about all releases. The boolean and exception cases overlap existing upstream reports [#2894](https://github.com/huggingface/smolagents/issues/2894) and [#2904](https://github.com/huggingface/smolagents/issues/2904). This project does not claim those discoveries or submit duplicate fixes. No smolagents source is patched or vendored.
+To investigate a changed result, first check the report's source hashes and interpreter versions, then rerun the individual contract shown above. An exit code of `2` requires fixing the worker or environment before interpreting semantic differences. No background service or deployed resource needs restarting.
 
 ## Method and boundaries
 
