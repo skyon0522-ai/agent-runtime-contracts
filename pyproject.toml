@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agent-runtime-contracts"
+version = "0.1.0"
+description = "Reproducible semantic and side-effect checks for Python code agents"
+requires-python = ">=3.12"
+license = "MIT"
+
+[project.scripts]
+agent-runtime-contracts = "runtime_contracts:main"
+
+[tool.setuptools]
+py-modules = ["runtime_contracts"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]

@@ -1,0 +1,3 @@
+smolagents @ git+https://github.com/huggingface/smolagents.git@96f33faaf028479119ec8d34507b47694cf14e34
+pytest==9.1.1
+ruff==0.16.10

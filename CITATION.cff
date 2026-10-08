@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "Cite the software version and exact runtime commit when reproducing observations."
+title: Agent Runtime Contracts
+type: software
+version: 0.1.0
+date-released: 2026-10-08
+authors:
+  - name: Livoleta
+repository-code: https://github.com/skyon0522-ai/agent-runtime-contracts
+license: MIT

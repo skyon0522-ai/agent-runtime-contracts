@@ -1,0 +1,525 @@
+{
+  "schema_version": 1,
+  "environment": {
+    "python": "3.12.3",
+    "implementation": "CPython",
+    "system": "Linux",
+    "status": "ok",
+    "smolagents": "1.27.0.dev0",
+    "smolagents_commit": "96f33faaf028479119ec8d34507b47694cf14e34",
+    "executor_sha256": "41859e622bae8ad85ed861b7abef12b02f9106133a273c2f4d8a1e37a743d1ca",
+    "harness_sha256": "ca05a334a60bc9ff4f54712d9c34a6991e36acf40050886277c23183fd4b353d"
+  },
+  "counts": {
+    "match": 14,
+    "mismatch": 4,
+    "oracle_error": 0,
+    "infrastructure_error": 0
+  },
+  "cases": [
+    {
+      "case": "arithmetic",
+      "source": "result = (3 + 4) * 2",
+      "source_sha256": "e91d5e74552d4b4c575c3ae4c0f1a5d65781ec9589e802dc48b039511d9e2392",
+      "status": "match",
+      "cpython": {
+        "status": "ok",
+        "result": {
+          "type": "int",
+          "value": 14
+        },
+        "trace": []
+      },
+      "smolagents": {
+        "status": "ok",
+        "result": {
+          "type": "int",
+          "value": 14
+        },
+        "trace": []
+      }
+    },
+    {
+      "case": "ordered_arguments",
+      "source": "result = pair(mark('left'), mark('right'))",
+      "source_sha256": "89f1d292f8e420e226d2daeff4410c49422209063f401d356c1d2b1a6b1f241c",
+      "status": "match",
+      "cpython": {
+        "status": "ok",
+        "result": {
+          "type": "list",
+          "value": [
+            {
+              "type": "str",
+              "value": "left"
+            },
+            {
+              "type": "str",
+              "value": "right"
+            }
+          ]
+        },
+        "trace": [
+          "left",
+          "right"
+        ]
+      },
+      "smolagents": {
+        "status": "ok",
+        "result": {
+          "type": "list",
+          "value": [
+            {
+              "type": "str",
+              "value": "left"
+            },
+            {
+              "type": "str",
+              "value": "right"
+            }
+          ]
+        },
+        "trace": [
+          "left",
+          "right"
+        ]
+      }
+    },
+    {
+      "case": "and_skips_rhs",
+      "source": "result = False and mark('unwanted')",
+      "source_sha256": "46c56238ddfc430556688df1330ecaa0438896767b469adce1d8c5e65439e30c",
+      "status": "match",
+      "cpython": {
+        "status": "ok",
+        "result": {
+          "type": "bool",
+          "value": false
+        },
+        "trace": []
+      },
+      "smolagents": {
+        "status": "ok",
+        "result": {
+          "type": "bool",
+          "value": false
+        },
+        "trace": []
+      }
+    },
+    {
+      "case": "or_skips_rhs",
+      "source": "result = True or mark('unwanted')",
+      "source_sha256": "cda5f61d6ad728926c6630e145532d69db4a7044c50838cbdfdad3f59d7a3aa2",
+      "status": "match",
+      "cpython": {
+        "status": "ok",
+        "result": {
+          "type": "bool",
+          "value": true
+        },
+        "trace": []
+      },
+      "smolagents": {
+        "status": "ok",
+        "result": {
+          "type": "bool",
+          "value": true
+        },
+        "trace": []
+      }
+    },
+    {
+      "case": "and_returns_operand",
+      "source": "result = (True and false_probe).label",
+      "source_sha256": "b09763384dc7467833a83bbbac72c1e632dced7d89d6c8ab6bd8aea41dae2a6e",
+      "status": "mismatch",
+      "cpython": {
+        "status": "ok",
+        "result": {
+          "type": "str",
+          "value": "false"
+        },
+        "trace": []
+      },
+      "smolagents": {
+        "status": "ok",
+        "result": {
+          "type": "str",
+          "value": "false"
+        },
+        "trace": [
+          "bool:false"
+        ]
+      }
+    },
+    {
+      "case": "or_returns_operand",
+      "source": "result = (False or true_probe).label",
+      "source_sha256": "22aded9ad209b11612b46b3516a089b52c201d70652b905d7f7f8083e773f0e9",
+      "status": "mismatch",
+      "cpython": {
+        "status": "ok",
+        "result": {
+          "type": "str",
+          "value": "true"
+        },
+        "trace": []
+      },
+      "smolagents": {
+        "status": "ok",
+        "result": {
+          "type": "str",
+          "value": "true"
+        },
+        "trace": [
+          "bool:true"
+        ]
+      }
+    },
+    {
+      "case": "and_checks_intermediate",
+      "source": "result = (false_probe and mark('unwanted')).label",
+      "source_sha256": "0cc33da4eaf1ee6ca3c5e8d3f30b6e3ad7b0d59dd89f5d06d263c76e166b7814",
+      "status": "match",
+      "cpython": {
+        "status": "ok",
+        "result": {
+          "type": "str",
+          "value": "false"
+        },
+        "trace": [
+          "bool:false"
+        ]
+      },
+      "smolagents": {
+        "status": "ok",
+        "result": {
+          "type": "str",
+          "value": "false"
+        },
+        "trace": [
+          "bool:false"
+        ]
+      }
+    },
+    {
+      "case": "or_checks_intermediate",
+      "source": "result = (true_probe or mark('unwanted')).label",
+      "source_sha256": "fdac97b282d8fe34b6b3afc897ce6a694e7463de494333a6c262f227d742a29a",
+      "status": "match",
+      "cpython": {
+        "status": "ok",
+        "result": {
+          "type": "str",
+          "value": "true"
+        },
+        "trace": [
+          "bool:true"
+        ]
+      },
+      "smolagents": {
+        "status": "ok",
+        "result": {
+          "type": "str",
+          "value": "true"
+        },
+        "trace": [
+          "bool:true"
+        ]
+      }
+    },
+    {
+      "case": "chain_builtin_short_circuit",
+      "source": "result = 3 < 2 < mark('unwanted')",
+      "source_sha256": "8a47a1b5bd3cb8aed5eb20dd07b21864c7b837492cd7fdbcce6a834b765ad5a9",
+      "status": "match",
+      "cpython": {
+        "status": "ok",
+        "result": {
+          "type": "bool",
+          "value": false
+        },
+        "trace": []
+      },
+      "smolagents": {
+        "status": "ok",
+        "result": {
+          "type": "bool",
+          "value": false
+        },
+        "trace": []
+      }
+    },
+    {
+      "case": "chain_middle_once",
+      "source": "result = 0 < number() < 2",
+      "source_sha256": "828a4433efb10ccbf5db079ce861794f90518daf385bdb1644409ee825008bc4",
+      "status": "match",
+      "cpython": {
+        "status": "ok",
+        "result": {
+          "type": "bool",
+          "value": true
+        },
+        "trace": [
+          "number"
+        ]
+      },
+      "smolagents": {
+        "status": "ok",
+        "result": {
+          "type": "bool",
+          "value": true
+        },
+        "trace": [
+          "number"
+        ]
+      }
+    },
+    {
+      "case": "chain_false_like_short_circuit",
+      "source": "result = (left < 1 < later()).label",
+      "source_sha256": "859aeb4ccb067ff23a0ff3fd46acf8fe62f3f58a3a7e602204ee0b80ad34a841",
+      "status": "mismatch",
+      "cpython": {
+        "status": "ok",
+        "result": {
+          "type": "str",
+          "value": "false"
+        },
+        "trace": [
+          "compare",
+          "bool:false"
+        ]
+      },
+      "smolagents": {
+        "status": "ok",
+        "result": {
+          "type": "str",
+          "value": "false"
+        },
+        "trace": [
+          "compare",
+          "later",
+          "bool:false"
+        ]
+      }
+    },
+    {
+      "case": "comparison_returns_operand",
+      "source": "result = (left < 1).label",
+      "source_sha256": "00f9cb1fa2780232f3e994027d32b21a2e176f753ba30e7c72a488fda694917f",
+      "status": "match",
+      "cpython": {
+        "status": "ok",
+        "result": {
+          "type": "str",
+          "value": "false"
+        },
+        "trace": [
+          "compare"
+        ]
+      },
+      "smolagents": {
+        "status": "ok",
+        "result": {
+          "type": "str",
+          "value": "false"
+        },
+        "trace": [
+          "compare"
+        ]
+      }
+    },
+    {
+      "case": "conditional_branch",
+      "source": "result = mark('yes') if True else mark('unwanted')",
+      "source_sha256": "2b55700455ca916fac83146502b586a39079508dad4ec4ba3291af4d2e60cfdd",
+      "status": "match",
+      "cpython": {
+        "status": "ok",
+        "result": {
+          "type": "str",
+          "value": "yes"
+        },
+        "trace": [
+          "yes"
+        ]
+      },
+      "smolagents": {
+        "status": "ok",
+        "result": {
+          "type": "str",
+          "value": "yes"
+        },
+        "trace": [
+          "yes"
+        ]
+      }
+    },
+    {
+      "case": "comprehension_filter",
+      "source": "result = [x * 2 for x in range(5) if x % 2]",
+      "source_sha256": "68fbc5b8fa0a46214a291b1e052b8bd2fcf7f26193ed23c1fe92aa146f1ecfd9",
+      "status": "match",
+      "cpython": {
+        "status": "ok",
+        "result": {
+          "type": "list",
+          "value": [
+            {
+              "type": "int",
+              "value": 2
+            },
+            {
+              "type": "int",
+              "value": 6
+            }
+          ]
+        },
+        "trace": []
+      },
+      "smolagents": {
+        "status": "ok",
+        "result": {
+          "type": "list",
+          "value": [
+            {
+              "type": "int",
+              "value": 2
+            },
+            {
+              "type": "int",
+              "value": 6
+            }
+          ]
+        },
+        "trace": []
+      }
+    },
+    {
+      "case": "loop_else_break",
+      "source": "result = []\nfor x in range(3):\n    if x == 1:\n        break\n    result.append(x)\nelse:\n    result.append(99)",
+      "source_sha256": "fa2a0e5eab129fa90893d39c6f9e6a0a51e3a01e7ce0d18391cc9fe21375abff",
+      "status": "match",
+      "cpython": {
+        "status": "ok",
+        "result": {
+          "type": "list",
+          "value": [
+            {
+              "type": "int",
+              "value": 0
+            }
+          ]
+        },
+        "trace": []
+      },
+      "smolagents": {
+        "status": "ok",
+        "result": {
+          "type": "list",
+          "value": [
+            {
+              "type": "int",
+              "value": 0
+            }
+          ]
+        },
+        "trace": []
+      }
+    },
+    {
+      "case": "finally_side_effect",
+      "source": "result = 1\ntry:\n    result = 2\nfinally:\n    mark('cleanup')",
+      "source_sha256": "da99d8cf2ee1f34413af9cbcc495bc0f91a333ab5e7c280abf6ffba0ab22bb8a",
+      "status": "match",
+      "cpython": {
+        "status": "ok",
+        "result": {
+          "type": "int",
+          "value": 2
+        },
+        "trace": [
+          "cleanup"
+        ]
+      },
+      "smolagents": {
+        "status": "ok",
+        "result": {
+          "type": "int",
+          "value": 2
+        },
+        "trace": [
+          "cleanup"
+        ]
+      }
+    },
+    {
+      "case": "builtin_exception_catch",
+      "source": "try:\n    {}['missing']\nexcept KeyError:\n    result = 'caught'",
+      "source_sha256": "7f9d335c8df126615a0d42d0ce69418b813ac41d610c9b47d5fefaef17680b98",
+      "status": "mismatch",
+      "cpython": {
+        "status": "ok",
+        "result": {
+          "type": "str",
+          "value": "caught"
+        },
+        "trace": []
+      },
+      "smolagents": {
+        "status": "exception",
+        "exception": "InterpreterError",
+        "trace": []
+      }
+    },
+    {
+      "case": "keyword_argument_order",
+      "source": "result = pair(second=mark('second'), first=mark('first'))",
+      "source_sha256": "06c7c545d8fa039d2dbc0b1bc9d0c18df91befacfc239c366a4fb5062d6e506a",
+      "status": "match",
+      "cpython": {
+        "status": "ok",
+        "result": {
+          "type": "list",
+          "value": [
+            {
+              "type": "str",
+              "value": "first"
+            },
+            {
+              "type": "str",
+              "value": "second"
+            }
+          ]
+        },
+        "trace": [
+          "second",
+          "first"
+        ]
+      },
+      "smolagents": {
+        "status": "ok",
+        "result": {
+          "type": "list",
+          "value": [
+            {
+              "type": "str",
+              "value": "first"
+            },
+            {
+              "type": "str",
+              "value": "second"
+            }
+          ]
+        },
+        "trace": [
+          "second",
+          "first"
+        ]
+      }
+    }
+  ]
+}
