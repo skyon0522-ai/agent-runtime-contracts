@@ -1,0 +1,68 @@
+{
+  "schema": "litellm-inspectable-validation-export.v1",
+  "status": "Recorded local validation; casebook export, not submitted or accepted upstream.",
+  "upstream": "https://github.com/BerriAI/litellm",
+  "base": "68c0a972a7ff38255a6f0e40336af0ad443695ae",
+  "private_tip": "cd76b98c727e922af3d6a35f408220816783c65d",
+  "tip_parent_matches_base": true,
+  "working_tree_clean_at_inspection": true,
+  "changed_paths": [
+    "litellm/caching/caching.py",
+    "tests/unit/caching/test_caching.py"
+  ],
+  "diff_sha256": "59329dc8868076641551d149361856c6eac4ce2f600cd71b96d34b5a7d2853bc",
+  "validation_basis": "Recorded checks used the complete exact-base source with the candidate applied. Fresh inspection confirms both committed blobs equal the tested files byte for byte. Tests were not rerun after the commit or during packaging.",
+  "committed_and_tested_file_sha256": {
+    "litellm/caching/caching.py": "69fa9f71afb92186d67e1b80fdfeda4ed0df87a12668669bfe2a47d68cda5c0a",
+    "tests/unit/caching/test_caching.py": "0037acc2e86db0a98fbb6b248135c036a5f99e83694418e32beb289c68e5da8c"
+  },
+  "checks": [
+    {
+      "command": "PYTHONPATH=. <existing-venv>/bin/pytest tests/unit/caching/test_caching.py -q",
+      "source_state": "Complete patched source at the stated base",
+      "result": "30 passed, 1 Pydantic ReadOnly warning in 41.20s; exit 0"
+    },
+    {
+      "command": "PYTHONPATH=. <existing-venv>/bin/python <sdk-cache-ownership-repro.py>",
+      "source_state": "Complete unpatched then patched source at the stated base",
+      "result": "Both exits 0; actual LOCAL Cache objects, no mocks or provider calls"
+    },
+    {
+      "command": "<existing-venv>/bin/ruff check litellm/caching/caching.py",
+      "result": "Passed with complete-source repository configuration; recorded status"
+    },
+    {
+      "command": "<existing-venv>/bin/ruff check --config ruff-tests.toml tests/unit/caching/test_caching.py",
+      "result": "Passed; recorded status"
+    },
+    {
+      "command": "<existing-venv>/bin/ruff format --check litellm/caching/caching.py tests/unit/caching/test_caching.py",
+      "result": "Passed for both changed files; recorded status"
+    }
+  ],
+  "sdk_observation": {
+    "trigger": "Create two LOCAL Cache objects, clear supported_call_types on the first, then construct a third.",
+    "before_list_lengths": [0, 0, 0],
+    "after_list_lengths": [0, 14, 14],
+    "after_invariant": "The second and third objects retain the original reference defaults.",
+    "version_boundary": "Fourteen is the observed count for this inspected source, not an asserted permanent API set."
+  },
+  "regression_coverage": "Default instances, shared supplied-list ownership, caller mutation after construction, explicit empty list, and None preservation.",
+  "license": {
+    "notice": "Copyright (c) 2023 Berri AI",
+    "covered_patch_source_paths": [
+      "litellm/caching/caching.py",
+      "tests/unit/caching/test_caching.py"
+    ],
+    "terms": "These non-enterprise paths fall under the inspected upstream MIT terms. Preserve the applicable copyright and permission notice. enterprise/ has separate terms and is not included in this patch."
+  },
+  "unperformed": [
+    "Repository-wide make lint",
+    "Remote CI and coverage",
+    "Required maintainer/bot reviews",
+    "Upstream fork, push, or PR",
+    "CLA acceptance",
+    "Upstream acceptance"
+  ],
+  "refresh_gate": "If the base or tip changes, refresh applicable proof before submission. Publication and legal agreements require their actual authorization."
+}

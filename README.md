@@ -67,6 +67,10 @@ Subprocesses isolate fixture state and bound hangs. **They are not security sand
 
 The library is pinned to commit `96f33faaf028479119ec8d34507b47694cf14e34`. Change the pin intentionally, rerun, and compare the individual observations. Do not silently redefine expected behavior to make the output green.
 
+## Optional archived experiment
+
+[LiteLLM cache ownership](experiments/litellm-cache-ownership/README.md) preserves a separate local cache reproduction and historical validation. It requires its own LiteLLM environment; the core runner and smolagents corpus remain the experiment described above.
+
 ## Research and implementation references
 
 - Wang et al., **Executable Code Actions Elicit Better LLM Agents**, ICML 2024, [paper](https://arxiv.org/abs/2402.01030), [alphaXiv](https://www.alphaxiv.org/abs/2402.01030). CodeAct motivates treating executable Python as an agent's action interface. This repository tests that interface's semantics; it does not reproduce CodeAct's model experiments or reported performance.

@@ -1,0 +1,64 @@
+diff --git a/litellm/caching/caching.py b/litellm/caching/caching.py
+index 1dc4de0..0c2ed01 100644
+--- a/litellm/caching/caching.py
++++ b/litellm/caching/caching.py
+@@ -289,9 +289,7 @@ class Cache:
+             litellm.logging_callback_manager.add_litellm_success_callback("cache")
+         if "cache" not in litellm._async_success_callback:
+             litellm.logging_callback_manager.add_litellm_async_success_callback("cache")
+-        self.supported_call_types = (
+-            supported_call_types  # default to ["completion", "acompletion", "embedding", "aembedding"]
+-        )
++        self.supported_call_types = list(supported_call_types) if supported_call_types is not None else None
+         self.type = type
+         self.namespace = namespace
+         self.redis_flush_size = redis_flush_size
+diff --git a/tests/unit/caching/test_caching.py b/tests/unit/caching/test_caching.py
+index 0a7ac3e..6af6e71 100644
+--- a/tests/unit/caching/test_caching.py
++++ b/tests/unit/caching/test_caching.py
+@@ -13,7 +13,12 @@ from litellm.caching.caching import Cache, response_cache_phase
+ from litellm.caching.caching_handler import _PENDING_CACHE_WRITES
+ from litellm.caching.in_memory_cache import InMemoryCache
+ from litellm.caching.redis_cache import RedisCache, _RedisTimeoutLogThrottle
+-from litellm.types.caching import EMBEDDING_CACHE_FORMAT_VERSION, LiteLLMCacheType, SemanticCacheScope
++from litellm.types.caching import (
++    DEFAULT_CACHING_SUPPORTED_CALL_TYPES,
++    EMBEDDING_CACHE_FORMAT_VERSION,
++    LiteLLMCacheType,
++    SemanticCacheScope,
++)
+ from litellm.types.utils import Embedding, EmbeddingResponse, Usage
+ 
+ 
+@@ -473,3 +478,30 @@ async def test_a_lookup_already_inside_the_phase_does_not_open_a_second_one(v2_s
+         await cache.async_get_cache(dynamic_cache_object=backend, **_REQUEST)
+     assert backend.seen == [("llm_response", "cache.get llm_response")]
+     assert [s.name for s in v2_span_exporter.get_finished_spans()] == ["cache.get llm_response"]
++
++
++def test_default_cache_call_types_are_independent() -> None:
++    first: Final = Cache(type=LiteLLMCacheType.LOCAL)
++    second: Final = Cache(type=LiteLLMCacheType.LOCAL)
++    assert first.supported_call_types is not None
++    assert second.supported_call_types is not None
++    expected: Final = tuple(second.supported_call_types)
++    assert expected
++    first.supported_call_types.clear()
++    third: Final = Cache(type=LiteLLMCacheType.LOCAL)
++    assert second.supported_call_types == list(expected)
++    assert third.supported_call_types == list(expected)
++
++
++def test_explicit_cache_call_types_are_copied_and_none_is_preserved() -> None:
++    supplied: Final = list(DEFAULT_CACHING_SUPPORTED_CALL_TYPES)
++    expected: Final = tuple(supplied)
++    first: Final = Cache(type=LiteLLMCacheType.LOCAL, supported_call_types=supplied)
++    second: Final = Cache(type=LiteLLMCacheType.LOCAL, supported_call_types=supplied)
++    assert first.supported_call_types is not None
++    first.supported_call_types.clear()
++    assert supplied == list(expected)
++    supplied.clear()
++    assert second.supported_call_types == list(expected)
++    assert Cache(type=LiteLLMCacheType.LOCAL, supported_call_types=[]).supported_call_types == []
++    assert Cache(type=LiteLLMCacheType.LOCAL, supported_call_types=None).supported_call_types is None
