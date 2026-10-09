@@ -1,10 +1,14 @@
 # Agent Runtime Contracts
 
+[![Reproduce and test](https://github.com/skyon0522-ai/agent-runtime-contracts/actions/workflows/checks.yml/badge.svg)](https://github.com/skyon0522-ai/agent-runtime-contracts/actions/workflows/checks.yml)
+
 **Check whether a Python code agent preserves both the answer and the actions that produced it.**
 
 A code agent can return the expected value while evaluating an operand that Python would skip. If that operand calls a tool, value-only tests miss the extra action. This small, offline laboratory compares a reviewed corpus against CPython and the real smolagents interpreter, with a fresh process for every execution.
 
 Use it when assessing a code-agent runtime, reproducing a language-semantics regression, or designing acceptance tests before connecting business tools. There are no model calls, API keys, customer records or network requests in the checks.
+
+[Observed contracts](#what-the-report-reveals) · [Quick start](#quick-start) · [Development checks](#development-checks) · [Method and boundaries](#method-and-boundaries) · [References](#research-and-implementation-references)
 
 ## What the report reveals
 
@@ -15,11 +19,28 @@ Use it when assessing a code-agent runtime, reproducing a language-semantics reg
 | Catch a built-in `KeyError` | Runs the matching handler | Raises `InterpreterError` |
 | Fourteen control cases | Expected result and callback order | Match |
 
-For the chained comparison, the program is `result = (left < 1 < later()).label`. The host fixture's comparison returns a false-like object. CPython records `compare, bool:false`; the inspected interpreter records `compare, later, bool:false`. Both return `false`. The additional call is the finding.
+For the chained comparison, the program is `result = (left < 1 < later()).label`. The host fixture's comparison returns a false-like object. Selected fields from the checked-in [observation report](examples/observed.json):
+
+```json
+{
+  "case": "chain_false_like_short_circuit",
+  "status": "mismatch",
+  "cpython": {
+    "result": {"type": "str", "value": "false"},
+    "trace": ["compare", "bool:false"]
+  },
+  "smolagents": {
+    "result": {"type": "str", "value": "false"},
+    "trace": ["compare", "later", "bool:false"]
+  }
+}
+```
+
+Both return `false`. The additional call to `later()` is the finding.
 
 These are version-specific observations, not claims about all releases. The boolean and exception cases overlap existing upstream reports [#2894](https://github.com/huggingface/smolagents/issues/2894) and [#2904](https://github.com/huggingface/smolagents/issues/2904). This project does not claim those discoveries or submit duplicate fixes. No smolagents source is patched or vendored.
 
-## Run the experiment
+## Quick start
 
 [Recorded validation](VALIDATION.md) · [CI and downloadable reports](https://github.com/skyon0522-ai/agent-runtime-contracts/actions/workflows/checks.yml)
 
@@ -46,6 +67,13 @@ Inspect one contract:
 
 ```bash
 python runtime_contracts.py run --case chain_false_like_short_circuit --output report.json
+```
+
+## Development checks
+
+With the same environment and locked dependencies:
+
+```sh
 python -m pytest -q
 ruff check .
 ruff format --check .
@@ -61,11 +89,16 @@ To investigate a changed result, first check the report's source hashes and inte
 
 ## Method and boundaries
 
-Each reviewed case includes an independently specified expected CPython value and trace. A bad oracle is reported separately, even if both runtimes produce the same wrong result. Values retain their types, so `True` and `1` cannot accidentally compare equal. Only explicit fixture callbacks and truth/comparison probes are traced; this is not a complete trace of filesystem, network or arbitrary runtime effects.
-
 Subprocesses isolate fixture state and bound hangs. **They are not security sandboxes.** The runner accepts only case names from the shipped corpus, not arbitrary code or downloaded datasets. Review source changes before executing them. The corpus does not test sandbox escapes, permissions, prompt injection, model quality, production reliability or performance.
 
+<details>
+<summary>Golden expectations, trace coverage and dependency pin</summary>
+
+Each reviewed case includes an independently specified expected CPython value and trace. A bad oracle is reported separately, even if both runtimes produce the same wrong result. Values retain their types, so `True` and `1` cannot accidentally compare equal. Only explicit fixture callbacks and truth/comparison probes are traced; this is not a complete trace of filesystem, network or arbitrary runtime effects.
+
 The library is pinned to commit `96f33faaf028479119ec8d34507b47694cf14e34`. Change the pin intentionally, rerun, and compare the individual observations. Do not silently redefine expected behavior to make the output green.
+
+</details>
 
 ## Optional archived experiment
 
@@ -73,12 +106,17 @@ The library is pinned to commit `96f33faaf028479119ec8d34507b47694cf14e34`. Chan
 
 ## Research and implementation references
 
+<details>
+<summary>Research context and original implementation</summary>
+
 - Wang et al., **Executable Code Actions Elicit Better LLM Agents**, ICML 2024, [paper](https://arxiv.org/abs/2402.01030), [alphaXiv](https://www.alphaxiv.org/abs/2402.01030). CodeAct motivates treating executable Python as an agent's action interface. This repository tests that interface's semantics; it does not reproduce CodeAct's model experiments or reported performance.
 - **MASEval: Extending Multi-Agent Evaluation from Models to Systems**, 2026, [paper](https://arxiv.org/abs/2603.08835), [alphaXiv](https://www.alphaxiv.org/abs/2603.08835). Used as context for separating system behavior from model capability, not as evidence for this corpus's results.
 - [Python language reference: comparisons and Boolean operations](https://docs.python.org/3/reference/expressions.html). The behavior contract, supplemented by explicit golden expectations and actual CPython execution.
 - [smolagents interpreter at the inspected commit](https://github.com/huggingface/smolagents/blob/96f33faaf028479119ec8d34507b47694cf14e34/src/smolagents/local_python_executor.py). The original implementation was inspected before designing probes; existing implementation and contribution rules remain upstream's work.
 
 The patterns adopted are small input programs, independent expectations, observable traces and reproducible environment records. This is an original diagnostic harness, not a new Python interpreter or a model benchmark. See [references.bib](references.bib).
+
+</details>
 
 ## Provenance and license
 
