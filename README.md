@@ -10,6 +10,8 @@ Use it when assessing a code-agent runtime, reproducing a language-semantics reg
 
 [Observed contracts](#what-the-report-reveals) · [Quick start](#quick-start) · [Development checks](#development-checks) · [Method and boundaries](#method-and-boundaries) · [References](#research-and-implementation-references)
 
+The [runner](runtime_contracts.py) holds the fixed corpus, CPython oracle, subprocess execution and report CLI. [Its tests](tests/test_contracts.py) check the contracts and failure reporting; [recorded validation](VALIDATION.md) distinguishes observed runs from the commands below.
+
 ## What the report reveals
 
 | Contract | CPython | Inspected smolagents commit |
