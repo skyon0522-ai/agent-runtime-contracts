@@ -16,6 +16,8 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
+from report_view import write_html
+
 
 @dataclass(frozen=True)
 class Case:
@@ -300,6 +302,7 @@ def main(argv=None) -> int:
     commands = parser.add_subparsers(dest="command", required=True)
     run = commands.add_parser("run")
     run.add_argument("--output", type=Path, required=True)
+    run.add_argument("--html", type=Path, help="also create a new offline HTML report")
     run.add_argument("--case", choices=[c.name for c in CASES], action="append")
     run.add_argument("--timeout", type=float, default=20)
     worker = commands.add_parser("worker", help=argparse.SUPPRESS)
@@ -312,12 +315,28 @@ def main(argv=None) -> int:
         return 0
     if not math.isfinite(args.timeout) or args.timeout <= 0:
         parser.error("--timeout must be a finite positive number")
+    if args.html:
+        if args.html.resolve() == args.output.resolve():
+            parser.error("--html and --output must name different files")
+        if args.html.exists() or args.html.is_symlink():
+            parser.error("--html must name a new file; existing reports are not overwritten")
     selected = [c for c in CASES if not args.case or c.name in args.case]
     report = build_report(selected, args.timeout)
-    args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(json.dumps(report, indent=2, allow_nan=False) + "\n", encoding="utf-8")
+    code = exit_code(report)
+    try:
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.write_text(
+            json.dumps(report, indent=2, allow_nan=False) + "\n", encoding="utf-8"
+        )
+        if args.html:
+            write_html(report, code, args.html)
+    except OSError as error:
+        print(f"error: cannot write report ({type(error).__name__})", file=sys.stderr)
+        return 2
     print(json.dumps(report["counts"]))
-    return exit_code(report)
+    if args.html:
+        print(f"HTML report: {args.html.resolve()}")
+    return code
 
 
 if __name__ == "__main__":

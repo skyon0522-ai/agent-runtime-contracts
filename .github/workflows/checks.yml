@@ -14,11 +14,18 @@ jobs:
       - run: python -m pip install -r requirements-lock.txt
       - run: python -m pytest -q
       - run: ruff check . && ruff format --check .
+      - name: Verify installed command outside checkout
+        shell: bash
+        run: |
+          python -m pip install --no-deps .
+          ARC="$(command -v agent-runtime-contracts)"
+          cd "$(mktemp -d)"
+          "$ARC" run --case arithmetic --output installed.json --html installed.html
       - name: Record runtime diagnostics (mismatches are an experiment result)
         shell: bash
         run: |
           set +e
-          python runtime_contracts.py run --output ci-report.json
+          python runtime_contracts.py run --output ci-report.json --html ci-report.html
           result=$?
           set -e
           if [ "$result" -gt 1 ]; then exit "$result"; fi
@@ -28,4 +35,6 @@ jobs:
         if: always()
         with:
           name: runtime-observations
-          path: ci-report.json
+          path: |
+            ci-report.json
+            ci-report.html

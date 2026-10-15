@@ -1,0 +1,41 @@
+{
+  "schema": "runtime-report-local-verification-v1",
+  "recorded_date": "2026-10-15",
+  "platform": "Ubuntu 24.04 under WSL2; CPython 3.12.3",
+  "status": "local_checks_passed",
+  "product_tests": 48,
+  "counts": {
+    "match": 14,
+    "mismatch": 4,
+    "oracle_error": 0,
+    "infrastructure_error": 0
+  },
+  "historical_case_observations_unchanged": true,
+  "protected_core_ast_unchanged": true,
+  "installed_command_outside_checkout": true,
+  "existing_html_repeat_exit": 2,
+  "existing_json_and_html_preserved": true,
+  "distribution": {
+    "status": "PASS",
+    "wheel": "agent_runtime_contracts-0.1.0-py3-none-any.whl",
+    "wheel_sha256": "91e95197fd9dbf18d80c87edde63410a51e2d67deed276405e7f09b29b492b16",
+    "tested_source_wheel_installed_equal": {
+      "runtime_contracts.py": "d7898cb8a6ec06580edfc43c5c95264719d16226044d6ce7201049ce1485a84a",
+      "report_view.py": "63574fea74035da7585a55db4cb3fd1eb6b361424f1629dbcf5a530ce118c512"
+    },
+    "original_and_reused_mit_notices_in_wheel": true,
+    "final_wheel_arithmetic_json_and_html_exit": 0,
+    "no_full_suite_repeated_for_notice_only_packaging_change": true
+  },
+  "display": {
+    "desktop_width": 1440,
+    "mobile_width": 390,
+    "javascript_disabled": true,
+    "external_requests_observed": 0
+  },
+  "limitations": [
+    "Fixed 18-case corpus, not general runtime accuracy or a security audit",
+    "Dependency versions/commit pinned; artifact hashes and build-tool closure not locked",
+    "No new Windows result, independent review or remote candidate CI included in this local run"
+  ]
+}

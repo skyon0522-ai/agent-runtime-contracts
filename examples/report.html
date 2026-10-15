@@ -1,0 +1,524 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
+<meta name="color-scheme" content="light"><title>Agent Runtime Contracts — Differences observed</title>
+<style>
+:root{--ink:#172c3e;--muted:#516678;--line:#d6e0e6;--brand:#16615c;--bg:#f3f6f8}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,sans-serif}
+main{max-width:1120px;margin:auto;padding:40px 28px 60px}h1{font-size:clamp(28px,4vw,40px);line-height:1.2}h2{font-size:24px}h3{font-size:18px}
+.eyebrow,.outcome{color:var(--brand);font-weight:700}.intro{max-width:78ch;color:var(--muted)}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin:28px 0}
+.stat,section{background:white;border:1px solid var(--line);border-radius:10px}.stat{padding:20px}.stat strong{display:block;font-size:32px}.stat span{color:var(--muted)}
+section{padding:24px;margin-bottom:24px}.case{border-top:1px solid var(--line);padding:12px 0}summary{cursor:pointer;min-height:44px;overflow-wrap:anywhere}
+summary:focus-visible,a:focus-visible{outline:3px solid var(--brand);outline-offset:3px}.badge{font-size:14px;font-weight:700;margin-right:8px}
+code,pre{font:14px/1.6 ui-monospace,monospace;white-space:pre-wrap;overflow-wrap:anywhere}pre{padding:16px;background:#edf3f5;border-radius:6px}
+.observations{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.observations>div{min-width:0}.fingerprint,footer{color:var(--muted);font-size:14px}
+@media(max-width:700px){main{padding:24px 16px 40px}section{padding:16px}.stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.stat{padding:12px}.observations{grid-template-columns:1fr}}
+@media print{body{background:white}main{max-width:none;padding:0}section{border:0;padding:12px}.case{break-inside:avoid}}
+</style></head><body><main>
+<header><p class="eyebrow">LOCAL RUNTIME OBSERVATIONS</p><h1>Agent Runtime Contracts</h1>
+<p class="intro">Compare typed return values and recorded callback order for a fixed, reviewed Python corpus. Equal answers can hide an extra action.</p>
+<p class="outcome">Differences observed · diagnostic exit code 1</p></header>
+<div class="stats" aria-label="Observed contract counts"><div class="stat"><strong>14</strong><span>Matches</span></div><div class="stat"><strong>4</strong><span>Differences</span></div><div class="stat"><strong>0</strong><span>Oracle errors</span></div><div class="stat"><strong>0</strong><span>Execution errors</span></div></div>
+<section aria-labelledby="cases-title"><h2 id="cases-title">Contract observations</h2>
+<p id="case-note">Errors and differences appear first and are expanded. Matching cases can be opened with the keyboard. These counts describe this selected corpus, not general runtime accuracy.</p>
+<details class="case" open>
+<summary><span class="badge">mismatch</span> <code>and_returns_operand</code></summary>
+<p>Input program</p><pre>result = (True and false_probe).label</pre>
+<div class="observations"><div><h3>CPython</h3><pre>{
+  &quot;status&quot;: &quot;ok&quot;,
+  &quot;result&quot;: {
+    &quot;type&quot;: &quot;str&quot;,
+    &quot;value&quot;: &quot;false&quot;
+  },
+  &quot;trace&quot;: []
+}</pre></div>
+<div><h3>smolagents</h3><pre>{
+  &quot;status&quot;: &quot;ok&quot;,
+  &quot;result&quot;: {
+    &quot;type&quot;: &quot;str&quot;,
+    &quot;value&quot;: &quot;false&quot;
+  },
+  &quot;trace&quot;: [
+    &quot;bool:false&quot;
+  ]
+}</pre></div></div>
+<p class="fingerprint">Input SHA-256: <code>b09763384dc7467833a83bbbac72c1e632dced7d89d6c8ab6bd8aea41dae2a6e</code></p>
+</details><details class="case" open>
+<summary><span class="badge">mismatch</span> <code>or_returns_operand</code></summary>
+<p>Input program</p><pre>result = (False or true_probe).label</pre>
+<div class="observations"><div><h3>CPython</h3><pre>{
+  &quot;status&quot;: &quot;ok&quot;,
+  &quot;result&quot;: {
+    &quot;type&quot;: &quot;str&quot;,
+    &quot;value&quot;: &quot;true&quot;
+  },
+  &quot;trace&quot;: []
+}</pre></div>
+<div><h3>smolagents</h3><pre>{
+  &quot;status&quot;: &quot;ok&quot;,
+  &quot;result&quot;: {
+    &quot;type&quot;: &quot;str&quot;,
+    &quot;value&quot;: &quot;true&quot;
+  },
+  &quot;trace&quot;: [
+    &quot;bool:true&quot;
+  ]
+}</pre></div></div>
+<p class="fingerprint">Input SHA-256: <code>22aded9ad209b11612b46b3516a089b52c201d70652b905d7f7f8083e773f0e9</code></p>
+</details><details class="case" open>
+<summary><span class="badge">mismatch</span> <code>chain_false_like_short_circuit</code></summary>
+<p>Input program</p><pre>result = (left &lt; 1 &lt; later()).label</pre>
+<div class="observations"><div><h3>CPython</h3><pre>{
+  &quot;status&quot;: &quot;ok&quot;,
+  &quot;result&quot;: {
+    &quot;type&quot;: &quot;str&quot;,
+    &quot;value&quot;: &quot;false&quot;
+  },
+  &quot;trace&quot;: [
+    &quot;compare&quot;,
+    &quot;bool:false&quot;
+  ]
+}</pre></div>
+<div><h3>smolagents</h3><pre>{
+  &quot;status&quot;: &quot;ok&quot;,
+  &quot;result&quot;: {
+    &quot;type&quot;: &quot;str&quot;,
+    &quot;value&quot;: &quot;false&quot;
+  },
+  &quot;trace&quot;: [
+    &quot;compare&quot;,
+    &quot;later&quot;,
+    &quot;bool:false&quot;
+  ]
+}</pre></div></div>
+<p class="fingerprint">Input SHA-256: <code>859aeb4ccb067ff23a0ff3fd46acf8fe62f3f58a3a7e602204ee0b80ad34a841</code></p>
+</details><details class="case" open>
+<summary><span class="badge">mismatch</span> <code>builtin_exception_catch</code></summary>
+<p>Input program</p><pre>try:
+    {}[&#x27;missing&#x27;]
+except KeyError:
+    result = &#x27;caught&#x27;</pre>
+<div class="observations"><div><h3>CPython</h3><pre>{
+  &quot;status&quot;: &quot;ok&quot;,
+  &quot;result&quot;: {
+    &quot;type&quot;: &quot;str&quot;,
+    &quot;value&quot;: &quot;caught&quot;
+  },
+  &quot;trace&quot;: []
+}</pre></div>
+<div><h3>smolagents</h3><pre>{
+  &quot;status&quot;: &quot;exception&quot;,
+  &quot;exception&quot;: &quot;InterpreterError&quot;,
+  &quot;trace&quot;: []
+}</pre></div></div>
+<p class="fingerprint">Input SHA-256: <code>7f9d335c8df126615a0d42d0ce69418b813ac41d610c9b47d5fefaef17680b98</code></p>
+</details><details class="case">
+<summary><span class="badge">match</span> <code>arithmetic</code></summary>
+<p>Input program</p><pre>result = (3 + 4) * 2</pre>
+<div class="observations"><div><h3>CPython</h3><pre>{
+  &quot;status&quot;: &quot;ok&quot;,
+  &quot;result&quot;: {
+    &quot;type&quot;: &quot;int&quot;,
+    &quot;value&quot;: 14
+  },
+  &quot;trace&quot;: []
+}</pre></div>
+<div><h3>smolagents</h3><pre>{
+  &quot;status&quot;: &quot;ok&quot;,
+  &quot;result&quot;: {
+    &quot;type&quot;: &quot;int&quot;,
+    &quot;value&quot;: 14
+  },
+  &quot;trace&quot;: []
+}</pre></div></div>
+<p class="fingerprint">Input SHA-256: <code>e91d5e74552d4b4c575c3ae4c0f1a5d65781ec9589e802dc48b039511d9e2392</code></p>
+</details><details class="case">
+<summary><span class="badge">match</span> <code>ordered_arguments</code></summary>
+<p>Input program</p><pre>result = pair(mark(&#x27;left&#x27;), mark(&#x27;right&#x27;))</pre>
+<div class="observations"><div><h3>CPython</h3><pre>{
+  &quot;status&quot;: &quot;ok&quot;,
+  &quot;result&quot;: {
+    &quot;type&quot;: &quot;list&quot;,
+    &quot;value&quot;: [
+      {
+        &quot;type&quot;: &quot;str&quot;,
+        &quot;value&quot;: &quot;left&quot;
+      },
+      {
+        &quot;type&quot;: &quot;str&quot;,
+        &quot;value&quot;: &quot;right&quot;
+      }
+    ]
+  },
+  &quot;trace&quot;: [
+    &quot;left&quot;,
+    &quot;right&quot;
+  ]
+}</pre></div>
+<div><h3>smolagents</h3><pre>{
+  &quot;status&quot;: &quot;ok&quot;,
+  &quot;result&quot;: {
+    &quot;type&quot;: &quot;list&quot;,
+    &quot;value&quot;: [
+      {
+        &quot;type&quot;: &quot;str&quot;,
+        &quot;value&quot;: &quot;left&quot;
+      },
+      {
+        &quot;type&quot;: &quot;str&quot;,
+        &quot;value&quot;: &quot;right&quot;
+      }
+    ]
+  },
+  &quot;trace&quot;: [
+    &quot;left&quot;,
+    &quot;right&quot;
+  ]
+}</pre></div></div>
+<p class="fingerprint">Input SHA-256: <code>89f1d292f8e420e226d2daeff4410c49422209063f401d356c1d2b1a6b1f241c</code></p>
+</details><details class="case">
+<summary><span class="badge">match</span> <code>and_skips_rhs</code></summary>
+<p>Input program</p><pre>result = False and mark(&#x27;unwanted&#x27;)</pre>
+<div class="observations"><div><h3>CPython</h3><pre>{
+  &quot;status&quot;: &quot;ok&quot;,
+  &quot;result&quot;: {
+    &quot;type&quot;: &quot;bool&quot;,
+    &quot;value&quot;: false
+  },
+  &quot;trace&quot;: []
+}</pre></div>
+<div><h3>smolagents</h3><pre>{
+  &quot;status&quot;: &quot;ok&quot;,
+  &quot;result&quot;: {
+    &quot;type&quot;: &quot;bool&quot;,
+    &quot;value&quot;: false
+  },
+  &quot;trace&quot;: []
+}</pre></div></div>
+<p class="fingerprint">Input SHA-256: <code>46c56238ddfc430556688df1330ecaa0438896767b469adce1d8c5e65439e30c</code></p>
+</details><details class="case">
+<summary><span class="badge">match</span> <code>or_skips_rhs</code></summary>
+<p>Input program</p><pre>result = True or mark(&#x27;unwanted&#x27;)</pre>
+<div class="observations"><div><h3>CPython</h3><pre>{
+  &quot;status&quot;: &quot;ok&quot;,
+  &quot;result&quot;: {
+    &quot;type&quot;: &quot;bool&quot;,
+    &quot;value&quot;: true
+  },
+  &quot;trace&quot;: []
+}</pre></div>
+<div><h3>smolagents</h3><pre>{
+  &quot;status&quot;: &quot;ok&quot;,
+  &quot;result&quot;: {
+    &quot;type&quot;: &quot;bool&quot;,
+    &quot;value&quot;: true
+  },
+  &quot;trace&quot;: []
+}</pre></div></div>
+<p class="fingerprint">Input SHA-256: <code>cda5f61d6ad728926c6630e145532d69db4a7044c50838cbdfdad3f59d7a3aa2</code></p>
+</details><details class="case">
+<summary><span class="badge">match</span> <code>and_checks_intermediate</code></summary>
+<p>Input program</p><pre>result = (false_probe and mark(&#x27;unwanted&#x27;)).label</pre>
+<div class="observations"><div><h3>CPython</h3><pre>{
+  &quot;status&quot;: &quot;ok&quot;,
+  &quot;result&quot;: {
+    &quot;type&quot;: &quot;str&quot;,
+    &quot;value&quot;: &quot;false&quot;
+  },
+  &quot;trace&quot;: [
+    &quot;bool:false&quot;
+  ]
+}</pre></div>
+<div><h3>smolagents</h3><pre>{
+  &quot;status&quot;: &quot;ok&quot;,
+  &quot;result&quot;: {
+    &quot;type&quot;: &quot;str&quot;,
+    &quot;value&quot;: &quot;false&quot;
+  },
+  &quot;trace&quot;: [
+    &quot;bool:false&quot;
+  ]
+}</pre></div></div>
+<p class="fingerprint">Input SHA-256: <code>0cc33da4eaf1ee6ca3c5e8d3f30b6e3ad7b0d59dd89f5d06d263c76e166b7814</code></p>
+</details><details class="case">
+<summary><span class="badge">match</span> <code>or_checks_intermediate</code></summary>
+<p>Input program</p><pre>result = (true_probe or mark(&#x27;unwanted&#x27;)).label</pre>
+<div class="observations"><div><h3>CPython</h3><pre>{
+  &quot;status&quot;: &quot;ok&quot;,
+  &quot;result&quot;: {
+    &quot;type&quot;: &quot;str&quot;,
+    &quot;value&quot;: &quot;true&quot;
+  },
+  &quot;trace&quot;: [
+    &quot;bool:true&quot;
+  ]
+}</pre></div>
+<div><h3>smolagents</h3><pre>{
+  &quot;status&quot;: &quot;ok&quot;,
+  &quot;result&quot;: {
+    &quot;type&quot;: &quot;str&quot;,
+    &quot;value&quot;: &quot;true&quot;
+  },
+  &quot;trace&quot;: [
+    &quot;bool:true&quot;
+  ]
+}</pre></div></div>
+<p class="fingerprint">Input SHA-256: <code>fdac97b282d8fe34b6b3afc897ce6a694e7463de494333a6c262f227d742a29a</code></p>
+</details><details class="case">
+<summary><span class="badge">match</span> <code>chain_builtin_short_circuit</code></summary>
+<p>Input program</p><pre>result = 3 &lt; 2 &lt; mark(&#x27;unwanted&#x27;)</pre>
+<div class="observations"><div><h3>CPython</h3><pre>{
+  &quot;status&quot;: &quot;ok&quot;,
+  &quot;result&quot;: {
+    &quot;type&quot;: &quot;bool&quot;,
+    &quot;value&quot;: false
+  },
+  &quot;trace&quot;: []
+}</pre></div>
+<div><h3>smolagents</h3><pre>{
+  &quot;status&quot;: &quot;ok&quot;,
+  &quot;result&quot;: {
+    &quot;type&quot;: &quot;bool&quot;,
+    &quot;value&quot;: false
+  },
+  &quot;trace&quot;: []
+}</pre></div></div>
+<p class="fingerprint">Input SHA-256: <code>8a47a1b5bd3cb8aed5eb20dd07b21864c7b837492cd7fdbcce6a834b765ad5a9</code></p>
+</details><details class="case">
+<summary><span class="badge">match</span> <code>chain_middle_once</code></summary>
+<p>Input program</p><pre>result = 0 &lt; number() &lt; 2</pre>
+<div class="observations"><div><h3>CPython</h3><pre>{
+  &quot;status&quot;: &quot;ok&quot;,
+  &quot;result&quot;: {
+    &quot;type&quot;: &quot;bool&quot;,
+    &quot;value&quot;: true
+  },
+  &quot;trace&quot;: [
+    &quot;number&quot;
+  ]
+}</pre></div>
+<div><h3>smolagents</h3><pre>{
+  &quot;status&quot;: &quot;ok&quot;,
+  &quot;result&quot;: {
+    &quot;type&quot;: &quot;bool&quot;,
+    &quot;value&quot;: true
+  },
+  &quot;trace&quot;: [
+    &quot;number&quot;
+  ]
+}</pre></div></div>
+<p class="fingerprint">Input SHA-256: <code>828a4433efb10ccbf5db079ce861794f90518daf385bdb1644409ee825008bc4</code></p>
+</details><details class="case">
+<summary><span class="badge">match</span> <code>comparison_returns_operand</code></summary>
+<p>Input program</p><pre>result = (left &lt; 1).label</pre>
+<div class="observations"><div><h3>CPython</h3><pre>{
+  &quot;status&quot;: &quot;ok&quot;,
+  &quot;result&quot;: {
+    &quot;type&quot;: &quot;str&quot;,
+    &quot;value&quot;: &quot;false&quot;
+  },
+  &quot;trace&quot;: [
+    &quot;compare&quot;
+  ]
+}</pre></div>
+<div><h3>smolagents</h3><pre>{
+  &quot;status&quot;: &quot;ok&quot;,
+  &quot;result&quot;: {
+    &quot;type&quot;: &quot;str&quot;,
+    &quot;value&quot;: &quot;false&quot;
+  },
+  &quot;trace&quot;: [
+    &quot;compare&quot;
+  ]
+}</pre></div></div>
+<p class="fingerprint">Input SHA-256: <code>00f9cb1fa2780232f3e994027d32b21a2e176f753ba30e7c72a488fda694917f</code></p>
+</details><details class="case">
+<summary><span class="badge">match</span> <code>conditional_branch</code></summary>
+<p>Input program</p><pre>result = mark(&#x27;yes&#x27;) if True else mark(&#x27;unwanted&#x27;)</pre>
+<div class="observations"><div><h3>CPython</h3><pre>{
+  &quot;status&quot;: &quot;ok&quot;,
+  &quot;result&quot;: {
+    &quot;type&quot;: &quot;str&quot;,
+    &quot;value&quot;: &quot;yes&quot;
+  },
+  &quot;trace&quot;: [
+    &quot;yes&quot;
+  ]
+}</pre></div>
+<div><h3>smolagents</h3><pre>{
+  &quot;status&quot;: &quot;ok&quot;,
+  &quot;result&quot;: {
+    &quot;type&quot;: &quot;str&quot;,
+    &quot;value&quot;: &quot;yes&quot;
+  },
+  &quot;trace&quot;: [
+    &quot;yes&quot;
+  ]
+}</pre></div></div>
+<p class="fingerprint">Input SHA-256: <code>2b55700455ca916fac83146502b586a39079508dad4ec4ba3291af4d2e60cfdd</code></p>
+</details><details class="case">
+<summary><span class="badge">match</span> <code>comprehension_filter</code></summary>
+<p>Input program</p><pre>result = [x * 2 for x in range(5) if x % 2]</pre>
+<div class="observations"><div><h3>CPython</h3><pre>{
+  &quot;status&quot;: &quot;ok&quot;,
+  &quot;result&quot;: {
+    &quot;type&quot;: &quot;list&quot;,
+    &quot;value&quot;: [
+      {
+        &quot;type&quot;: &quot;int&quot;,
+        &quot;value&quot;: 2
+      },
+      {
+        &quot;type&quot;: &quot;int&quot;,
+        &quot;value&quot;: 6
+      }
+    ]
+  },
+  &quot;trace&quot;: []
+}</pre></div>
+<div><h3>smolagents</h3><pre>{
+  &quot;status&quot;: &quot;ok&quot;,
+  &quot;result&quot;: {
+    &quot;type&quot;: &quot;list&quot;,
+    &quot;value&quot;: [
+      {
+        &quot;type&quot;: &quot;int&quot;,
+        &quot;value&quot;: 2
+      },
+      {
+        &quot;type&quot;: &quot;int&quot;,
+        &quot;value&quot;: 6
+      }
+    ]
+  },
+  &quot;trace&quot;: []
+}</pre></div></div>
+<p class="fingerprint">Input SHA-256: <code>68fbc5b8fa0a46214a291b1e052b8bd2fcf7f26193ed23c1fe92aa146f1ecfd9</code></p>
+</details><details class="case">
+<summary><span class="badge">match</span> <code>loop_else_break</code></summary>
+<p>Input program</p><pre>result = []
+for x in range(3):
+    if x == 1:
+        break
+    result.append(x)
+else:
+    result.append(99)</pre>
+<div class="observations"><div><h3>CPython</h3><pre>{
+  &quot;status&quot;: &quot;ok&quot;,
+  &quot;result&quot;: {
+    &quot;type&quot;: &quot;list&quot;,
+    &quot;value&quot;: [
+      {
+        &quot;type&quot;: &quot;int&quot;,
+        &quot;value&quot;: 0
+      }
+    ]
+  },
+  &quot;trace&quot;: []
+}</pre></div>
+<div><h3>smolagents</h3><pre>{
+  &quot;status&quot;: &quot;ok&quot;,
+  &quot;result&quot;: {
+    &quot;type&quot;: &quot;list&quot;,
+    &quot;value&quot;: [
+      {
+        &quot;type&quot;: &quot;int&quot;,
+        &quot;value&quot;: 0
+      }
+    ]
+  },
+  &quot;trace&quot;: []
+}</pre></div></div>
+<p class="fingerprint">Input SHA-256: <code>fa2a0e5eab129fa90893d39c6f9e6a0a51e3a01e7ce0d18391cc9fe21375abff</code></p>
+</details><details class="case">
+<summary><span class="badge">match</span> <code>finally_side_effect</code></summary>
+<p>Input program</p><pre>result = 1
+try:
+    result = 2
+finally:
+    mark(&#x27;cleanup&#x27;)</pre>
+<div class="observations"><div><h3>CPython</h3><pre>{
+  &quot;status&quot;: &quot;ok&quot;,
+  &quot;result&quot;: {
+    &quot;type&quot;: &quot;int&quot;,
+    &quot;value&quot;: 2
+  },
+  &quot;trace&quot;: [
+    &quot;cleanup&quot;
+  ]
+}</pre></div>
+<div><h3>smolagents</h3><pre>{
+  &quot;status&quot;: &quot;ok&quot;,
+  &quot;result&quot;: {
+    &quot;type&quot;: &quot;int&quot;,
+    &quot;value&quot;: 2
+  },
+  &quot;trace&quot;: [
+    &quot;cleanup&quot;
+  ]
+}</pre></div></div>
+<p class="fingerprint">Input SHA-256: <code>da99d8cf2ee1f34413af9cbcc495bc0f91a333ab5e7c280abf6ffba0ab22bb8a</code></p>
+</details><details class="case">
+<summary><span class="badge">match</span> <code>keyword_argument_order</code></summary>
+<p>Input program</p><pre>result = pair(second=mark(&#x27;second&#x27;), first=mark(&#x27;first&#x27;))</pre>
+<div class="observations"><div><h3>CPython</h3><pre>{
+  &quot;status&quot;: &quot;ok&quot;,
+  &quot;result&quot;: {
+    &quot;type&quot;: &quot;list&quot;,
+    &quot;value&quot;: [
+      {
+        &quot;type&quot;: &quot;str&quot;,
+        &quot;value&quot;: &quot;first&quot;
+      },
+      {
+        &quot;type&quot;: &quot;str&quot;,
+        &quot;value&quot;: &quot;second&quot;
+      }
+    ]
+  },
+  &quot;trace&quot;: [
+    &quot;second&quot;,
+    &quot;first&quot;
+  ]
+}</pre></div>
+<div><h3>smolagents</h3><pre>{
+  &quot;status&quot;: &quot;ok&quot;,
+  &quot;result&quot;: {
+    &quot;type&quot;: &quot;list&quot;,
+    &quot;value&quot;: [
+      {
+        &quot;type&quot;: &quot;str&quot;,
+        &quot;value&quot;: &quot;first&quot;
+      },
+      {
+        &quot;type&quot;: &quot;str&quot;,
+        &quot;value&quot;: &quot;second&quot;
+      }
+    ]
+  },
+  &quot;trace&quot;: [
+    &quot;second&quot;,
+    &quot;first&quot;
+  ]
+}</pre></div></div>
+<p class="fingerprint">Input SHA-256: <code>06c7c545d8fa039d2dbc0b1bc9d0c18df91befacfc239c366a4fb5062d6e506a</code></p>
+</details></section>
+<section aria-labelledby="environment-title"><h2 id="environment-title">Runtime and source identity</h2>
+<p>Check the dependency commit and source fingerprints before comparing runs. Metadata failure makes the experiment incomplete even if individual observations match.</p>
+<pre>{
+  &quot;python&quot;: &quot;3.12.3&quot;,
+  &quot;implementation&quot;: &quot;CPython&quot;,
+  &quot;system&quot;: &quot;Linux&quot;,
+  &quot;status&quot;: &quot;ok&quot;,
+  &quot;smolagents&quot;: &quot;1.27.0.dev0&quot;,
+  &quot;smolagents_commit&quot;: &quot;96f33faaf028479119ec8d34507b47694cf14e34&quot;,
+  &quot;executor_sha256&quot;: &quot;41859e622bae8ad85ed861b7abef12b02f9106133a273c2f4d8a1e37a743d1ca&quot;,
+  &quot;harness_sha256&quot;: &quot;d7898cb8a6ec06580edfc43c5c95264719d16226044d6ce7201049ce1485a84a&quot;
+}</pre></section>
+<section aria-labelledby="scope-title"><h2 id="scope-title">Scope and handling</h2>
+<p>This is a snapshot of the JSON from this run. It does not refresh, approve a runtime or change the expected behavior. Execution errors and a bad CPython oracle are separate from semantic differences.</p>
+<p>Only explicit fixture callbacks are traced. Subprocesses are not security sandboxes. No model quality, sandbox escape, production reliability or performance claim follows from these checks.</p>
+<p>Reports contain fixture programs, values, callback labels and possible diagnostic paths. Review a report before sharing it.</p></section>
+<footer>Offline HTML · no scripts or external assets · no upload</footer>
+</main></body></html>

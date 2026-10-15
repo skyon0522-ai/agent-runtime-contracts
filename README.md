@@ -8,6 +8,8 @@ A code agent can return the expected value while evaluating an operand that Pyth
 
 Use it when assessing a code-agent runtime, reproducing a language-semantics regression, or designing acceptance tests before connecting business tools. There are no model calls, API keys, customer records or network requests in the checks.
 
+![Actual offline contract report](docs/assets/report.png)
+
 [Observed contracts](#what-the-report-reveals) · [Quick start](#quick-start) · [Development checks](#development-checks) · [Method and boundaries](#method-and-boundaries) · [References](#research-and-implementation-references)
 
 The [runner](runtime_contracts.py) holds the fixed corpus, CPython oracle, subprocess execution and report CLI. [Its tests](tests/test_contracts.py) check the contracts and failure reporting; [recorded validation](VALIDATION.md) distinguishes observed runs from the commands below.
@@ -46,39 +48,73 @@ These are version-specific observations, not claims about all releases. The bool
 
 [Recorded validation](VALIDATION.md) · [CI and downloadable reports](https://github.com/skyon0522-ai/agent-runtime-contracts/actions/workflows/checks.yml)
 
-Python 3.12 and Git are required for the recorded environment. Other versions have not been locally validated. Installation downloads dependencies; execution is local.
+Use Linux, Python 3.12 and Git. The recorded environment is Ubuntu 24.04 under WSL2 with Python 3.12.3. Installation downloads dependencies; execution is local. The dependency lock pins versions and a source commit, without artifact hashes or a complete build-tool lock.
 
 ```sh
 git clone https://github.com/skyon0522-ai/agent-runtime-contracts.git
 cd agent-runtime-contracts
-python -m venv .venv
+python3.12 -I -m venv .venv
+.venv/bin/python -I -m pip install -r requirements-lock.txt
+.venv/bin/python -I -m pip install --no-deps .
+.venv/bin/python -I -m pip check
+ARC="$(pwd)/.venv/bin/agent-runtime-contracts"
 ```
 
-Activate the environment with `source .venv/bin/activate` on Linux/macOS, or `.venv\Scripts\Activate.ps1` in PowerShell. Then run:
+Run the installed command from a new working directory, outside the checkout:
 
 ```sh
-python -m pip install -r requirements-lock.txt
-python runtime_contracts.py run --output report.json
+ARC_WORK="$(mktemp -d)"
+cd "$ARC_WORK"
+"$ARC" run --output report.json --html report.html
 ```
+
+Open the printed HTML path in your browser. Differences and errors appear first;
+expand any matching case to inspect its program, typed values and callback trace.
+The view works offline without JavaScript. It presents the JSON from the same run,
+including the dependency commit and source hashes; it does not execute more cases.
+See the [retained synthetic report](examples/report.html) before installing.
 
 The recorded result is **14 matches and 4 mismatches across 18 deliberately selected cases**, with no oracle or infrastructure errors. The command exits **1** because mismatches were observed. This is diagnostic output, not an installation failure. A count from this targeted corpus is not a general runtime accuracy score.
 
-Exit codes: `0` all selected contracts match; `1` semantic or observable-trace mismatch; `2` oracle/worker failure. Worker import errors and timeouts are not counted as runtime mismatches.
+Exit codes: `0` all selected contracts match; `1` semantic or observable-trace mismatch; `2` oracle/worker or output failure. Worker import errors and timeouts are not counted as runtime mismatches.
 
 Inspect one contract:
 
 ```bash
-python runtime_contracts.py run --case chain_false_like_short_circuit --output report.json
+"$ARC" run --case chain_false_like_short_circuit --output chain.json --html chain.html
 ```
+
+The HTML destination must be new. Existing HTML files and identical JSON/HTML
+paths are refused before execution. JSON retains its documented replacement
+behavior. If report writing fails, the command returns 2; a completed JSON may
+remain even when HTML creation failed. It opens no browser automatically.
+
+The original `python runtime_contracts.py run --output report.json` route still
+works from the checkout. This new report increment is validated on Linux.
+
+<details>
+<summary>Existing Windows checkout route</summary>
+
+Use a short checkout path to avoid dependency build path limits. From that checkout:
+
+```powershell
+python -m venv .venv
+.venv\Scripts\python.exe -m pip install -r requirements-lock.txt
+.venv\Scripts\python.exe runtime_contracts.py run --output report.json
+```
+
+The new HTML increment has not been rerun on Windows.
+
+</details>
 
 ## Development checks
 
-With the same environment and locked dependencies:
+From the checkout with the same environment and locked dependencies:
 
 ```sh
-python -m pytest -q
-ruff check .
-ruff format --check .
+.venv/bin/python -m pytest -q
+.venv/bin/ruff check .
+.venv/bin/ruff format --check .
 ```
 
 The checked-in [observation report](examples/observed.json) records interpreter versions, exact upstream commit, source hashes, input programs, return values and callback traces. The [validation record](VALIDATION.md) explains what was actually run.
@@ -86,6 +122,11 @@ The checked-in [observation report](examples/observed.json) records interpreter 
 ## Repeat or update an experiment
 
 The output path is created if needed; running again with the same path replaces that report. Use distinct names, such as `reports/before.json` and `reports/after.json`, when comparing a dependency update. Keep the checked-in observation report as the published baseline.
+
+This replacement behavior applies to JSON. Choose a new HTML path for each run.
+Reports can include fixture programs, values, callback labels and diagnostic
+paths. Review them before sharing. The rendering pattern and its reuse boundary
+are recorded in [the report design](docs/report-design.md).
 
 To investigate a changed result, first check the report's source hashes and interpreter versions, then rerun the individual contract shown above. An exit code of `2` requires fixing the worker or environment before interpreting semantic differences. No background service or deployed resource needs restarting.
 
