@@ -45,6 +45,27 @@ def test_timeout_is_not_a_semantic_failure():
     assert observation == {"status": "infrastructure_error", "reason": "worker_timeout"}
 
 
+@pytest.mark.parametrize("error", [FileNotFoundError(), PermissionError(), BlockingIOError()])
+def test_worker_os_error_preserves_report_and_infrastructure_exit(tmp_path, error):
+    target = tmp_path / "worker-error.json"
+    with patch.object(lab.subprocess, "run", side_effect=error):
+        status = lab.main(["run", "--case", "arithmetic", "--output", str(target)])
+    report = json.loads(target.read_text())
+    assert status == 2
+    assert report["counts"] == {
+        "match": 0,
+        "mismatch": 0,
+        "oracle_error": 0,
+        "infrastructure_error": 1,
+    }
+    for backend in ("cpython", "smolagents"):
+        assert report["cases"][0][backend] == {
+            "status": "infrastructure_error",
+            "reason": "worker_os_error",
+            "exception": type(error).__name__,
+        }
+
+
 @pytest.mark.parametrize(
     "stdout",
     [

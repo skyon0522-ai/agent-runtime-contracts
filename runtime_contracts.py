@@ -211,6 +211,12 @@ def run_child(case: Case, backend: str, timeout: float = 20.0) -> dict:
         )
     except subprocess.TimeoutExpired:
         return {"status": "infrastructure_error", "reason": "worker_timeout"}
+    except OSError as exc:
+        return {
+            "status": "infrastructure_error",
+            "reason": "worker_os_error",
+            "exception": type(exc).__name__,
+        }
     if child.returncode:
         return {
             "status": "infrastructure_error",
